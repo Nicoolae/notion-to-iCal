@@ -96,6 +96,7 @@ def serve_scadenze_calendar():
         event = Event()
         event.add("summary", d["Name"])
     
+        print("START:", d["Date"]["start"], "END:", d["Date"]["end"])
         if d["Date"]["start"]:
             event.add("dtstart", datetime.fromisoformat(d["Date"]["start"]))
         
@@ -108,6 +109,7 @@ def serve_scadenze_calendar():
                 print("Non valid - skipped!")
                 continue
 
+        print("------------------------------------------------------")
         event.add("description", ", ".join(d["Courses"]))
         event.add("url", d["URL"])
 
