@@ -1,0 +1,9 @@
+# File di configurazione segreti
+.env
+
+# File generati dal sistema o da editor
+__pycache__/
+*.pyc
+.DS_Store
+*.swp
+.devcontainer/
