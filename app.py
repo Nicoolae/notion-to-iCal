@@ -90,13 +90,16 @@ def serve_scadenze_calendar():
     # 5. Restituiscilo come risposta Flask con `mimetype="text/calendar"`
     
     deadlines = clean_scadenze_data()
+
     cal = Calendar()
 
     for d in deadlines:
         event = Event()
-        event.add("summary", d["Name"])
-    
-        print("START:", d["Date"]["start"], "END:", d["Date"]["end"])
+        
+        # Nome
+        event.add("summary", (d["Name"] + " - " + d["Courses"][0]))
+
+        # Data
         if d["Date"]["start"]:
             event.add("dtstart", datetime.fromisoformat(d["Date"]["start"]))
         
@@ -106,12 +109,19 @@ def serve_scadenze_calendar():
             if d["Date"]["start"]:
                 event.add("dtend", datetime.fromisoformat(d["Date"]["start"]))  # se end_date mancante
             else:
-                print("Non valid - skipped!")
                 continue
+        
+        # Descrizione
+        desc = f"Corsi: {', '.join(d['Courses'])}"
+        if d['Status']:
+            desc += f"\nStato: {d['Status']}"
+        event.add("description", desc)
 
-        print("------------------------------------------------------")
-        event.add("description", ", ".join(d["Courses"]))
+        # URL -  Notion
         event.add("url", d["URL"])
+
+        # Location
+        event.add("location", "Via Torino 155 30170 Mestre, Venezia Italia")
 
         cal.add_component(event)
     
