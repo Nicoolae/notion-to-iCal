@@ -2,11 +2,13 @@ from flask import Flask, Response, jsonify
 from icalendar import Calendar, Event
 from datetime import datetime
 import requests
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
-NOTION_TOKEN = "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"
-# DATABASE_ID = "15b5b169b8f2810e9da3f49da3362f66"
+NOTION_TOKEN = os.getenv("INTEGRATION_SECRET")
 
 # Impostiamo l'header di autorizzazione per l'API di Notion
 headers = {
@@ -27,17 +29,16 @@ def get_db_data(database_id):
         print(f"Errore {response.status_code}: {response.text}")
         return []
 
-
 # Gets the events in scadenze database from Notion
 def get_notion_scadenze():
-    DATABASE_ID = "15b5b169b8f2810e9da3f49da3362f66"
+    DATABASE_ID = os.getenv("SCADENZE_DATABASE_ID")
     # Prende i dati dal DB, usando le API
     results = get_db_data(DATABASE_ID)
     return results    
 
 # Gets the events in courses database from Notion
 def get_notion_courses():
-    DATABASE_ID = "15b5b169b8f2812aab7dd35797089042"
+    DATABASE_ID = os.getenv("COURSES_DATABASE_ID")
     # Prende i dati dal DB, usando le API
     results = get_db_data(DATABASE_ID)
     return results
@@ -95,9 +96,7 @@ def serve_scadenze_calendar():
         event = Event()
         event.add("summary", d["Name"])
     
-        print("START:", d["Date"]["start"], "END:", d["Date"]["end"])
         if d["Date"]["start"]:
-            print("AOOO")
             event.add("dtstart", datetime.fromisoformat(d["Date"]["start"]))
         
         if d["Date"]["end"]:
@@ -109,7 +108,6 @@ def serve_scadenze_calendar():
                 print("Non valid - skipped!")
                 continue
 
-        print("------------------------------------------------------")
         event.add("description", ", ".join(d["Courses"]))
         event.add("url", d["URL"])
 
@@ -117,3 +115,6 @@ def serve_scadenze_calendar():
     
     # Ritorna una HTTP response in formato .ics
     return Response(cal.to_ical(), mimetype="text/calendar")
+
+if __name__ == "__main__":
+    app.run()
