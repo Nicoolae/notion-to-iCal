@@ -1,6 +1,6 @@
 from flask import Flask, Response, jsonify
 from icalendar import Calendar, Event
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import os
 from dotenv import load_dotenv
@@ -99,17 +99,22 @@ def serve_scadenze_calendar():
         # Nome
         event.add("summary", (d["Name"] + " - " + d["Courses"][0]))
 
-        # Data
-        if d["Date"]["start"]:
-            event.add("dtstart", datetime.fromisoformat(d["Date"]["start"]))
-        
-        if d["Date"]["end"]:
-            event.add("dtend", datetime.fromisoformat(d["Date"]["end"]))
+        start_date = d["Date"]["start"]
+        end_date = d["Date"]["end"]
+
+        if not start_date:
+            continue  # salta l'evento se manca la data di inizio
+
+        # La T in ISO format verifica che ci sia l'ora
+        if "T" not in start_date:
+            # Evento per tutto il giorno
+            # .date() converte a un oggetto di tipo Date (non Datetime) per avere l'evento per tutto il giorno
+            event.add("dtstart", datetime.fromisoformat(start_date).date())
+            event.add("dtend", datetime.fromisoformat(end_date).date() if end_date else datetime.fromisoformat(start_date).date() + timedelta(days=1))
         else:
-            if d["Date"]["start"]:
-                event.add("dtend", datetime.fromisoformat(d["Date"]["start"]))  # se end_date mancante
-            else:
-                continue
+            # Evento con orario specifico
+            event.add("dtstart", datetime.fromisoformat(start_date))
+            event.add("dtend", datetime.fromisoformat(end_date) if end_date else datetime.fromisoformat(start_date))
         
         # Descrizione
         desc = f"Corsi: {', '.join(d['Courses'])}"
